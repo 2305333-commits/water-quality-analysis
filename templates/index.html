@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaCheck — Water Potability Analyser</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#050d12;
+  --surface:#0a1a22;
+  --surface2:#0f2330;
+  --border:#1a3545;
+  --teal:#00d4aa;
+  --teal2:#00a884;
+  --blue:#0096ff;
+  --red:#ff4d6d;
+  --yellow:#ffd166;
+  --text:#e8f4f8;
+  --muted:#6b9aad;
+  --card-bg:rgba(10,26,34,0.9);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* BG EFFECT */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(0,212,170,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(0,150,255,0.06) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* HEADER */
+header{
+  position:sticky;top:0;z-index:100;
+  background:rgba(5,13,18,0.85);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;
+}
+.logo{
+  font-family:'Syne',sans-serif;
+  font-weight:800;font-size:1.4rem;
+  color:var(--teal);
+  letter-spacing:-0.5px;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.logo span{color:var(--text);font-weight:400}
+nav a{
+  color:var(--muted);text-decoration:none;
+  font-size:0.85rem;margin-left:2rem;
+  transition:color .2s;font-family:'DM Mono',monospace;
+  letter-spacing:0.05em;
+}
+nav a:hover{color:var(--teal)}
+
+/* HERO */
+.hero{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:5rem 2rem 3rem;
+}
+.hero-badge{
+  display:inline-block;
+  background:rgba(0,212,170,0.1);
+  border:1px solid rgba(0,212,170,0.3);
+  color:var(--teal);
+  font-family:'DM Mono',monospace;
+  font-size:0.75rem;letter-spacing:0.15em;
+  padding:0.35rem 1rem;border-radius:99px;
+  margin-bottom:1.5rem;
+  animation:fadeUp .6s ease both;
+}
+.hero h1{
+  font-family:'Syne',sans-serif;
+  font-size:clamp(2.5rem,6vw,4.5rem);
+  font-weight:800;
+  line-height:1.05;
+  letter-spacing:-2px;
+  animation:fadeUp .6s .1s ease both;
+}
+.hero h1 em{
+  font-style:normal;
+  background:linear-gradient(135deg,var(--teal),var(--blue));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hero p{
+  color:var(--muted);
+  font-size:1.05rem;max-width:520px;
+  margin:1.2rem auto 0;line-height:1.7;
+  animation:fadeUp .6s .2s ease both;
+}
+
+/* STATS BAR */
+.stats-bar{
+  position:relative;z-index:1;
+  display:flex;justify-content:center;gap:1px;
+  margin:2.5rem auto;max-width:700px;
+  background:var(--border);border-radius:16px;overflow:hidden;
+  animation:fadeUp .6s .3s ease both;
+}
+.stat-item{
+  flex:1;background:var(--surface);
+  padding:1.2rem;text-align:center;
+}
+.stat-item:first-child{border-radius:16px 0 0 16px}
+.stat-item:last-child{border-radius:0 16px 16px 0}
+.stat-val{
+  font-family:'Syne',sans-serif;
+  font-size:1.8rem;font-weight:700;
+  color:var(--teal);
+}
+.stat-lbl{
+  font-size:0.72rem;color:var(--muted);
+  font-family:'DM Mono',monospace;
+  letter-spacing:0.08em;margin-top:0.2rem;
+}
+
+/* MAIN GRID */
+.main-grid{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:1.5rem;
+  max-width:1100px;margin:0 auto;
+  padding:0 1.5rem 4rem;
+}
+@media(max-width:768px){.main-grid{grid-template-columns:1fr}}
+
+/* CARDS */
+.card{
+  background:var(--card-bg);
+  border:1px solid var(--border);
+  border-radius:20px;padding:1.8rem;
+  backdrop-filter:blur(10px);
+  transition:border-color .3s,transform .3s;
+}
+.card:hover{border-color:rgba(0,212,170,0.3);transform:translateY(-2px)}
+.card-title{
+  font-family:'Syne',sans-serif;
+  font-size:1rem;font-weight:700;
+  letter-spacing:0.03em;
+  margin-bottom:1.5rem;
+  display:flex;align-items:center;gap:0.5rem;
+}
+.card-title .dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--teal);
+  box-shadow:0 0 8px var(--teal);
+}
+
+/* FORM */
+.form-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0.8rem;
+}
+.form-group{display:flex;flex-direction:column;gap:0.4rem}
+.form-group label{
+  font-size:0.72rem;
+  font-family:'DM Mono',monospace;
+  color:var(--muted);letter-spacing:0.08em;
+  text-transform:uppercase;
+}
+.form-group input{
+  background:rgba(0,212,170,0.04);
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:var(--text);
+  font-family:'DM Mono',monospace;
+  font-size:0.9rem;
+  padding:0.65rem 0.9rem;
+  transition:border-color .2s,background .2s;
+  outline:none;
+  width:100%;
+}
+.form-group input:focus{
+  border-color:var(--teal);
+  background:rgba(0,212,170,0.08);
+}
+.form-group input::placeholder{color:rgba(107,154,173,0.4)}
+
+.range-hint{
+  font-size:0.65rem;color:rgba(107,154,173,0.6);
+  font-family:'DM Mono',monospace;
+}
+
+.predict-btn{
+  margin-top:1.2rem;width:100%;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  border:none;border-radius:12px;
+  color:#050d12;
+  font-family:'Syne',sans-serif;
+  font-size:0.95rem;font-weight:700;
+  letter-spacing:0.05em;
+  padding:0.9rem;cursor:pointer;
+  transition:opacity .2s,transform .1s;
+  position:relative;overflow:hidden;
+}
+.predict-btn:hover{opacity:0.9;transform:scale(1.01)}
+.predict-btn:active{transform:scale(0.99)}
+.predict-btn.loading{pointer-events:none;opacity:0.7}
+
+/* RESULT PANEL */
+.result-panel{
+  display:none;
+  animation:fadeUp .4s ease both;
+}
+.result-panel.show{display:block}
+
+.verdict{
+  text-align:center;
+  padding:1.5rem;
+  border-radius:14px;
+  margin-bottom:1.2rem;
+  border:1px solid;
+}
+.verdict.safe{
+  background:rgba(0,212,170,0.08);
+  border-color:rgba(0,212,170,0.3);
+}
+.verdict.unsafe{
+  background:rgba(255,77,109,0.08);
+  border-color:rgba(255,77,109,0.3);
+}
+.verdict-icon{font-size:2.5rem;margin-bottom:0.5rem}
+.verdict-label{
+  font-family:'Syne',sans-serif;
+  font-size:1.5rem;font-weight:800;
+}
+.verdict.safe .verdict-label{color:var(--teal)}
+.verdict.unsafe .verdict-label{color:var(--red)}
+.verdict-sub{font-size:0.8rem;color:var(--muted);margin-top:0.3rem}
+
+/* MODEL RESULTS */
+.model-results{display:flex;flex-direction:column;gap:0.7rem}
+.model-row{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;padding:0.9rem 1rem;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:border-color .3s;
+}
+.model-row.predicted-safe{border-color:rgba(0,212,170,0.4)}
+.model-row.predicted-unsafe{border-color:rgba(255,77,109,0.3)}
+.model-name{
+  font-family:'DM Mono',monospace;
+  font-size:0.8rem;color:var(--muted);
+}
+.model-verdict{
+  font-family:'Syne',sans-serif;
+  font-size:0.85rem;font-weight:700;
+}
+.model-verdict.safe{color:var(--teal)}
+.model-verdict.unsafe{color:var(--red)}
+.model-conf{
+  font-size:0.75rem;
+  font-family:'DM Mono',monospace;
+  color:var(--muted);
+}
+.conf-bar{
+  height:3px;border-radius:99px;
+  background:var(--border);
+  margin-top:0.4rem;overflow:hidden;
+}
+.conf-fill{
+  height:100%;border-radius:99px;
+  transition:width 0.8s ease;
+  background:linear-gradient(90deg,var(--teal),var(--blue));
+}
+.conf-fill.unsafe-fill{
+  background:linear-gradient(90deg,var(--red),#ff8fa3);
+}
+
+/* ACCURACY CARD */
+.accuracy-list{display:flex;flex-direction:column;gap:0.8rem}
+.acc-row{display:flex;align-items:center;gap:0.8rem}
+.acc-name{
+  font-family:'DM Mono',monospace;
+  font-size:0.78rem;color:var(--muted);
+  width:145px;flex-shrink:0;
+}
+.acc-bar-wrap{flex:1;background:var(--border);border-radius:99px;height:6px;overflow:hidden}
+.acc-bar{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--teal),var(--blue));
+  transition:width 1s ease;
+}
+.acc-val{
+  font-family:'Syne',sans-serif;
+  font-size:0.85rem;font-weight:700;
+  color:var(--teal);width:50px;text-align:right;
+}
+
+/* FEATURE IMPORTANCE */
+.feat-list{display:flex;flex-direction:column;gap:0.65rem}
+.feat-row{display:flex;align-items:center;gap:0.8rem}
+.feat-name{
+  font-family:'DM Mono',monospace;
+  font-size:0.75rem;color:var(--muted);
+  width:130px;flex-shrink:0;
+}
+.feat-bar-wrap{flex:1;background:var(--border);border-radius:99px;height:5px;overflow:hidden}
+.feat-bar{
+  height:100%;border-radius:99px;
+  background:linear-gradient(90deg,var(--blue),var(--teal));
+  transition:width 1.2s ease;
+}
+.feat-val{
+  font-size:0.75rem;color:var(--muted);
+  font-family:'DM Mono',monospace;
+  width:40px;text-align:right;
+}
+
+/* INFO CARD (WHO thresholds) */
+.threshold-grid{
+  display:grid;grid-template-columns:1fr 1fr;
+  gap:0.6rem;
+}
+.threshold-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;padding:0.7rem 0.9rem;
+}
+.th-param{
+  font-family:'DM Mono',monospace;
+  font-size:0.72rem;color:var(--teal);
+  letter-spacing:0.05em;
+}
+.th-val{
+  font-size:0.8rem;color:var(--muted);
+  margin-top:0.15rem;
+}
+
+/* FULL WIDTH CARD */
+.full-width{grid-column:1/-1}
+
+/* ABOUT SECTION */
+.about-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:0.8rem;margin-top:0;
+}
+.about-item{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:12px;padding:1rem;
+  text-align:center;
+}
+.about-icon{font-size:1.5rem;margin-bottom:0.5rem}
+.about-title{
+  font-family:'Syne',sans-serif;
+  font-size:0.85rem;font-weight:700;
+  color:var(--teal);margin-bottom:0.3rem;
+}
+.about-desc{font-size:0.78rem;color:var(--muted);line-height:1.5}
+
+/* FOOTER */
+footer{
+  position:relative;z-index:1;
+  text-align:center;
+  padding:2rem;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:0.78rem;
+  font-family:'DM Mono',monospace;
+}
+footer span{color:var(--teal)}
+
+/* ANIMATIONS */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.card{animation:fadeUp .5s ease both}
+.card:nth-child(1){animation-delay:.1s}
+.card:nth-child(2){animation-delay:.15s}
+.card:nth-child(3){animation-delay:.2s}
+.card:nth-child(4){animation-delay:.25s}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
+
+/* WATER DROPS */
+.drops{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;overflow:hidden;
+}
+.drop{
+  position:absolute;
+  width:2px;height:2px;
+  background:var(--teal);
+  border-radius:50%;
+  opacity:0;
+  animation:fall linear infinite;
+}
+@keyframes fall{
+  0%{opacity:0;transform:translateY(-10px)}
+  10%{opacity:0.6}
+  90%{opacity:0.1}
+  100%{opacity:0;transform:translateY(100vh)}
+}
+
+/* SPINNER */
+.spinner{
+  display:inline-block;
+  width:16px;height:16px;
+  border:2px solid rgba(5,13,18,0.3);
+  border-top-color:#050d12;
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- Animated water drops background -->
+<div class="drops" id="drops"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    💧 AquaCheck <span>/ Water Potability AI</span>
+  </div>
+  <nav>
+    <a href="#predict">Predict</a>
+    <a href="#models">Models</a>
+    <a href="#about">About</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">🎓 KIIT — Mini Project</div>
+  <h1>Is your water<br/><em>safe to drink?</em></h1>
+  <p>Enter 9 physicochemical parameters and our ML models will predict water potability using Logistic Regression, KNN, and Random Forest.</p>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat-item">
+    <div class="stat-val">3,276</div>
+    <div class="stat-lbl">Water Samples</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">9</div>
+    <div class="stat-lbl">Features</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val">3</div>
+    <div class="stat-lbl">ML Models</div>
+  </div>
+  <div class="stat-item">
+    <div class="stat-val" id="best-acc">—</div>
+    <div class="stat-lbl">Best Accuracy</div>
+  </div>
+</div>
+
+<!-- MAIN GRID -->
+<div class="main-grid" id="predict">
+
+  <!-- INPUT CARD -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Enter Water Parameters</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>pH Level</label>
+        <input type="number" id="ph" placeholder="7.0" step="0.01" min="0" max="14"/>
+        <span class="range-hint">WHO safe: 6.5 – 8.5</span>
+      </div>
+      <div class="form-group">
+        <label>Hardness (mg/L)</label>
+        <input type="number" id="hardness" placeholder="196" step="0.1"/>
+        <span class="range-hint">Typical: 150 – 250</span>
+      </div>
+      <div class="form-group">
+        <label>Solids / TDS (mg/L)</label>
+        <input type="number" id="solids" placeholder="21000" step="1"/>
+        <span class="range-hint">WHO limit: &lt; 500</span>
+      </div>
+      <div class="form-group">
+        <label>Chloramines (mg/L)</label>
+        <input type="number" id="chloramines" placeholder="7.1" step="0.01"/>
+        <span class="range-hint">Safe: &lt; 4 mg/L</span>
+      </div>
+      <div class="form-group">
+        <label>Sulfate (mg/L)</label>
+        <input type="number" id="sulfate" placeholder="333" step="0.1"/>
+        <span class="range-hint">WHO: &lt; 250 mg/L</span>
+      </div>
+      <div class="form-group">
+        <label>Conductivity (μS/cm)</label>
+        <input type="number" id="conductivity" placeholder="426" step="0.1"/>
+        <span class="range-hint">WHO: &lt; 400</span>
+      </div>
+      <div class="form-group">
+        <label>Organic Carbon (mg/L)</label>
+        <input type="number" id="organic_carbon" placeholder="14.4" step="0.01"/>
+        <span class="range-hint">Safe: &lt; 2 mg/L</span>
+      </div>
+      <div class="form-group">
+        <label>Trihalomethanes (μg/L)</label>
+        <input type="number" id="trihalomethanes" placeholder="66" step="0.1"/>
+        <span class="range-hint">EPA: &lt; 80 μg/L</span>
+      </div>
+      <div class="form-group">
+        <label>Turbidity (NTU)</label>
+        <input type="number" id="turbidity" placeholder="3.97" step="0.01"/>
+        <span class="range-hint">WHO: &lt; 1 NTU</span>
+      </div>
+      <div class="form-group" style="align-self:end">
+        <label>Quick Fill</label>
+        <button onclick="fillSample('safe')" style="background:rgba(0,212,170,0.1);border:1px solid rgba(0,212,170,0.3);color:var(--teal);border-radius:10px;padding:0.65rem;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.78rem;transition:background .2s" onmouseover="this.style.background='rgba(0,212,170,0.2)'" onmouseout="this.style.background='rgba(0,212,170,0.1)'">
+          Load Safe Sample
+        </button>
+      </div>
+    </div>
+    <button class="predict-btn" onclick="predict()" id="predictBtn">
+      Analyse Water Quality →
+    </button>
+    <button onclick="fillSample('unsafe')" style="margin-top:0.5rem;width:100%;background:rgba(255,77,109,0.08);border:1px solid rgba(255,77,109,0.2);color:var(--red);border-radius:12px;padding:0.6rem;cursor:pointer;font-family:'DM Mono',monospace;font-size:0.78rem;transition:background .2s" onmouseover="this.style.background='rgba(255,77,109,0.15)'" onmouseout="this.style.background='rgba(255,77,109,0.08)'">
+      Load Unsafe Sample
+    </button>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Prediction Results</div>
+
+    <!-- placeholder -->
+    <div id="placeholder" style="text-align:center;padding:3rem 1rem;color:var(--muted)">
+      <div style="font-size:3rem;margin-bottom:1rem;opacity:0.4">🔬</div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.85rem">
+        Enter parameters and click<br/>Analyse to see results
+      </div>
+    </div>
+
+    <div class="result-panel" id="resultPanel">
+      <!-- VERDICT -->
+      <div class="verdict" id="verdict">
+        <div class="verdict-icon" id="verdictIcon"></div>
+        <div class="verdict-label" id="verdictLabel"></div>
+        <div class="verdict-sub" id="verdictSub"></div>
+      </div>
+
+      <!-- MODEL BREAKDOWN -->
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.6rem">
+        Model Breakdown
+      </div>
+      <div class="model-results" id="modelResults"></div>
+    </div>
+  </div>
+
+  <!-- ACCURACY CARD -->
+  <div class="card" id="models">
+    <div class="card-title"><span class="dot"></span> Model Accuracy</div>
+    <div class="accuracy-list" id="accuracyList"></div>
+    <div style="margin-top:1.2rem;padding:0.8rem;background:var(--surface);border-radius:10px;border:1px solid var(--border)">
+      <div style="font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.4rem">Why the progression?</div>
+      <div style="font-size:0.8rem;color:var(--muted);line-height:1.6">LR fails because water potability is non-linear. KNN improves using local patterns. Random Forest wins by combining 200 diverse trees via ensemble voting.</div>
+    </div>
+  </div>
+
+  <!-- FEATURE IMPORTANCE -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span> Feature Importance (RF)</div>
+    <div class="feat-list" id="featList"></div>
+    <div style="margin-top:1rem;font-size:0.78rem;color:var(--muted);line-height:1.6">
+      Gini-based importance from Random Forest. Higher = more decisive for predicting potability.
+    </div>
+  </div>
+
+  <!-- WHO THRESHOLDS -->
+  <div class="card full-width">
+    <div class="card-title"><span class="dot"></span> WHO / EPA Safety Thresholds Reference</div>
+    <div class="threshold-grid">
+      <div class="threshold-item"><div class="th-param">pH</div><div class="th-val">6.5 – 8.5 (neutral range)</div></div>
+      <div class="threshold-item"><div class="th-param">Chloramines</div><div class="th-val">&lt; 4 mg/L (disinfectant limit)</div></div>
+      <div class="threshold-item"><div class="th-param">Sulfate</div><div class="th-val">&lt; 250 mg/L (gastric safety)</div></div>
+      <div class="threshold-item"><div class="th-param">Conductivity</div><div class="th-val">&lt; 400 μS/cm (ionic load)</div></div>
+      <div class="threshold-item"><div class="th-param">TDS / Solids</div><div class="th-val">&lt; 500 mg/L (taste + safety)</div></div>
+      <div class="threshold-item"><div class="th-param">Trihalomethanes</div><div class="th-val">&lt; 80 μg/L (EPA carcinogen limit)</div></div>
+      <div class="threshold-item"><div class="th-param">Turbidity</div><div class="th-val">&lt; 1 NTU (filtration quality)</div></div>
+      <div class="threshold-item"><div class="th-param">Organic Carbon</div><div class="th-val">&lt; 2 mg/L (organic pollution)</div></div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="card full-width" id="about">
+    <div class="card-title"><span class="dot"></span> About This Project</div>
+    <div class="about-grid">
+      <div class="about-item">
+        <div class="about-icon">🎓</div>
+        <div class="about-title">Academic</div>
+        <div class="about-desc">KIIT Mini Project — School of Computer Engineering, KIIT Deemed University</div>
+      </div>
+      <div class="about-item">
+        <div class="about-icon">📊</div>
+        <div class="about-title">Dataset</div>
+        <div class="about-desc">Kaggle Water Potability Dataset — 3,276 samples, 9 features, binary classification</div>
+      </div>
+      <div class="about-item">
+        <div class="about-icon">🤖</div>
+        <div class="about-title">Tech Stack</div>
+        <div class="about-desc">Python · Flask · scikit-learn · pandas · numpy · HTML/CSS/JS</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer>
+  Built with <span>♥</span> for KIIT Mini Project · KIIT DU · Water Pollution Analysis
+</footer>
+
+<script>
+// ── Animated drops ───────────────────────────────────────────────────────────
+const dropsEl = document.getElementById('drops');
+for(let i=0;i<25;i++){
+  const d = document.createElement('div');
+  d.className='drop';
+  d.style.cssText=`
+    left:${Math.random()*100}%;
+    animation-duration:${6+Math.random()*10}s;
+    animation-delay:${Math.random()*10}s;
+    opacity:${0.1+Math.random()*0.3};
+    width:${1+Math.random()*2}px;
+    height:${1+Math.random()*2}px;
+  `;
+  dropsEl.appendChild(d);
+}
+
+// ── Model stats from Flask ───────────────────────────────────────────────────
+const modelStats = {{ model_stats | tojson }};
+const featNames  = {{ feat_names | tojson }};
+const featImp    = {{ feat_imp | tojson }};
+
+// Best accuracy
+const bestAcc = Math.max(...Object.values(modelStats));
+document.getElementById('best-acc').textContent = bestAcc.toFixed(1)+'%';
+
+// Accuracy bars
+const accList = document.getElementById('accuracyList');
+Object.entries(modelStats).forEach(([name, acc])=>{
+  accList.innerHTML += `
+    <div class="acc-row">
+      <span class="acc-name">${name}</span>
+      <div class="acc-bar-wrap">
+        <div class="acc-bar" style="width:0%" data-target="${acc}"></div>
+      </div>
+      <span class="acc-val">${acc}%</span>
+    </div>`;
+});
+
+// Feature importance bars
+const combined = featNames.map((n,i)=>({n,v:featImp[i]}))
+  .sort((a,b)=>b.v-a.v);
+const featList = document.getElementById('featList');
+combined.forEach(({n,v})=>{
+  featList.innerHTML += `
+    <div class="feat-row">
+      <span class="feat-name">${n}</span>
+      <div class="feat-bar-wrap">
+        <div class="feat-bar" style="width:0%" data-target="${(v*100).toFixed(1)}"></div>
+      </div>
+      <span class="feat-val">${(v*100).toFixed(1)}%</span>
+    </div>`;
+});
+
+// Animate bars on load
+setTimeout(()=>{
+  document.querySelectorAll('.acc-bar').forEach(b=>{
+    b.style.width = b.dataset.target+'%';
+  });
+  document.querySelectorAll('.feat-bar').forEach(b=>{
+    b.style.width = b.dataset.target+'%';
+  });
+},300);
+
+// ── Sample data ──────────────────────────────────────────────────────────────
+function fillSample(type){
+  const samples = {
+    safe:  [7.2, 200, 18000, 2.5, 240, 380, 12, 55, 2.5],
+    unsafe:[4.1, 280, 42000, 8.9, 450, 600, 22, 110, 6.8],
+  };
+  const ids=['ph','hardness','solids','chloramines','sulfate',
+              'conductivity','organic_carbon','trihalomethanes','turbidity'];
+  ids.forEach((id,i)=>document.getElementById(id).value=samples[type][i]);
+}
+
+// ── Predict ──────────────────────────────────────────────────────────────────
+async function predict(){
+  const ids=['ph','hardness','solids','chloramines','sulfate',
+              'conductivity','organic_carbon','trihalomethanes','turbidity'];
+
+  // Validate
+  for(const id of ids){
+    if(!document.getElementById(id).value){
+      alert('Please fill in all fields!'); return;
+    }
+  }
+
+  const btn = document.getElementById('predictBtn');
+  btn.classList.add('loading');
+  btn.innerHTML='<span class="spinner"></span>Analysing...';
+
+  const payload={};
+  ids.forEach(id=>payload[id]=document.getElementById(id).value);
+
+  try{
+    const res  = await fetch('/predict',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if(data.success) showResults(data);
+    else alert('Error: '+data.error);
+  }catch(e){
+    alert('Connection error — make sure Flask is running!');
+  }finally{
+    btn.classList.remove('loading');
+    btn.innerHTML='Analyse Water Quality →';
+  }
+}
+
+function showResults(data){
+  document.getElementById('placeholder').style.display='none';
+  const panel = document.getElementById('resultPanel');
+  panel.classList.add('show');
+
+  // Verdict
+  const isSafe = data.majority === 1;
+  const verdict = document.getElementById('verdict');
+  verdict.className = 'verdict '+(isSafe?'safe':'unsafe');
+  document.getElementById('verdictIcon').textContent = isSafe?'✅':'⚠️';
+  document.getElementById('verdictLabel').textContent = isSafe?'POTABLE — Safe to Drink':'NOT POTABLE — Unsafe';
+  document.getElementById('verdictSub').textContent =
+    `${data.votes}/3 models agree · Majority vote decision`;
+
+  // Model rows
+  const modelDiv = document.getElementById('modelResults');
+  modelDiv.innerHTML='';
+  Object.entries(data.results).forEach(([name,r])=>{
+    const safe = r.prediction===1;
+    const conf = safe ? r.prob_safe : r.prob_unsafe;
+    modelDiv.innerHTML+=`
+      <div class="model-row ${safe?'predicted-safe':'predicted-unsafe'}">
+        <div>
+          <div class="model-name">${name}</div>
+          <div class="conf-bar" style="width:120px">
+            <div class="conf-fill ${safe?'':'unsafe-fill'}" style="width:0%" data-w="${conf}"></div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div class="model-verdict ${safe?'safe':'unsafe'}">${safe?'SAFE':'UNSAFE'}</div>
+          <div class="model-conf">${conf}% confidence</div>
+        </div>
+      </div>`;
+  });
+
+  // Animate confidence bars
+  setTimeout(()=>{
+    document.querySelectorAll('.conf-fill').forEach(b=>{
+      b.style.width=b.dataset.w+'%';
+    });
+  },100);
+
+  // Scroll to result
+  panel.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+</script>
+</body>
+</html>

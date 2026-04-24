@@ -1,0 +1,68 @@
+# 💧 AquaCheck — Water Potability Web App
+### ADL Mini Project | KIIT DU
+
+---
+
+## 📁 Project Structure
+
+water_app/
+├── app.py              ← Flask backend (ML models live here)
+└── templates/
+    └── index.html      ← The entire website (UI)
+
+---
+
+## ▶️ HOW TO RUN (Step by Step)
+
+### Step 1 — Install dependencies
+Open terminal / command prompt and run:
+
+    pip install flask scikit-learn pandas numpy
+
+### Step 2 — Put your dataset
+Place your `water_potability.csv` file inside the `water_app/` folder.
+
+Then in `app.py`, find this line near the top:
+    df = make_synthetic_data(n)
+
+And REPLACE it with:
+    df = pd.read_csv("water_potability.csv").dropna()
+
+### Step 3 — Run the app
+
+    cd water_app
+    python app.py
+
+### Step 4 — Open in browser
+Go to: http://localhost:5000
+
+---
+
+## 🌐 What the Website Does
+
+- Enter 9 water parameters (pH, Hardness, Solids, etc.)
+- Clicks "Analyse Water Quality"
+- All 3 ML models (LR, KNN, Random Forest) predict simultaneously
+- Majority vote gives final SAFE / UNSAFE verdict
+- Shows confidence % for each model
+- Shows model accuracy bars
+- Shows feature importance from Random Forest
+- Has "Load Safe Sample" and "Load Unsafe Sample" buttons for demo
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer      | Technology                    |
+|------------|-------------------------------|
+| Backend    | Python + Flask                |
+| ML Models  | scikit-learn                  |
+| Frontend   | HTML + CSS + Vanilla JS       |
+| Data       | pandas + numpy                |
+
+---
+
+## 📝 Note for Viva
+The app trains models fresh every time it starts (on startup).
+In production you would save trained models using joblib/pickle
+and load them instead of retraining.
